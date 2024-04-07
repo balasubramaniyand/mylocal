@@ -4,8 +4,6 @@ pipeline {
   parameters {
     string(description: 'Branch to build', name: 'branch',)
     string(description: 'IP Address', name: 'IP_ADDRESS')
-    string(description: 'Username', name: 'USERNAME')
-    string(description: 'Password', name: 'PASSWORD', sensitive: true) // Mark password as sensitive
   }
 
   stages {
