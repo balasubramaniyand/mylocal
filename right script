@@ -1,0 +1,73 @@
+pipeline {
+    agent any 
+    
+    stages {
+        stage('Clone') {
+            steps {
+                git credentialsId: 'gitlabaccess', url: 'https://pexgit.growipx.com/supportfirst/supportfirst-api-service.git', branch: 'main'
+            }
+        }
+        stage('Maven Build') {
+            steps {
+                script {
+                    def mvnHome = tool name: 'Maven', type: 'maven'
+                    sh "${mvnHome}/bin/mvn clean install"
+                    
+                }
+        }
+    }
+    stage('SONAR'){
+        steps{
+            script{
+            def mvnHome = tool name: 'Maven', type: 'maven'
+            withSonarQubeEnv('sonar'){
+                sh "${mvnHome}/bin/mvn sonar:sonar"
+            }
+            
+        }
+    }
+    }
+        stage ('Check dir') {
+            steps{
+                sh 'pwd'
+                sh 'ls -la /var/lib/jenkins/workspace/iopex/'
+            }
+        }
+        stage('Execute JAR') {
+            steps {
+            dir('/var/lib/jenkins/workspace/ipoex/target'){
+                sh 'nohup java -jar ./target/supportfirst-api-service-0.0.1.war > nohup.out 2&1 & '
+                sh 'pwd'
+                
+            }
+            }
+        }
+        stage('Whoami') {
+            steps {
+                sh 'whoami'
+                sh 'pwd'
+            }
+        }
+        
+        stage('Jar') {
+            steps {
+                sh'pwd'
+                sh 'sudo -i'
+                 sh 'nohup java -jar ./target/supportfirst-api-service-0.0.1.war >nohup.out 2>&1 &'
+                 sh 'pwd '
+                 sh'whoami'
+            
+        }    
+        }
+        stage('Nohup.out'){
+            steps{
+                sh 'nohup.out java -jar ./target/supportfirst-api-service-0.0.1.war '
+            }
+        }
+    
+        
+            }
+        }
+
+
+
