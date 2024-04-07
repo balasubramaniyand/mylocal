@@ -1,0 +1,71 @@
+pipeline {
+  agent any
+
+  parameters {
+    string(description: 'Branch to build', name: 'branch',)
+    string(description: 'IP Address', name: 'IP_ADDRESS')
+    string(description: 'Username', name: 'USERNAME') 
+  }
+
+  stages {
+    stage('Clone') {
+      steps {
+        git credentialsId: 'gitlab', url: 'https://pexgit.growipx.com/supportfirst/supportfirst-api-service.git', branch: "${params.branch}"
+      }
+    }
+    stage('Maven Build') {
+      steps {
+        script {
+          def mvnHome = tool name: 'Maven', type: 'maven'
+          sh "${mvnHome}/bin/mvn clean install"
+        }
+      }
+    }
+    stage('Check dir') { 
+      steps{
+        sh 'pwd'
+        sh 'ls -la /var/lib/jenkins/workspace/testiopex/'
+      }
+    }
+    stage('Whoami') { 
+      steps {
+        sh 'whoami'
+        sh 'pwd'
+      }
+    }
+    stage('Jar') {
+      steps {
+        sh 'whoami'
+      }
+    }
+    stage('SCP File transfer'){
+      steps{
+        def targetDir = '/opt/supportfirst/'  
+        script {
+          sh """
+          scp -T -P 7774 -o StrictHostKeyChecking=no /var/lib/jenkins/workspace/testiopex/target/supportfirst-api-service-0.0.1.war ${params.USERNAME}@${params.IP_ADDRESS}:${targetDir}
+          """
+        }
+      }
+    }
+    stage ('LOG'){ 
+      steps{
+        // sh 'nohup java -jar ./target/supportfirst-api-service-0.0.1.war &'  
+      }
+    }
+    stage ('SSH'){
+      steps{
+        def targetDir = '/opt/supportfirst/' 
+        sh """
+        ssh -p 7774 ${params.USERNAME}@${params.IP_ADDRESS} 'cd ${targetDir} && nohup java -jar supportfirst-api-service-0.0.1.war &'
+        """
+      }
+    }
+    stage ('Run'){ // Optional stage for verification on remote server
+      steps{
+        // sh 'hostname -I'  
+        // sh 'ls -l'       
+      }
+    }
+  }
+}
