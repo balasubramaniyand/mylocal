@@ -1,0 +1,71 @@
+pipeline {
+  agent any
+
+  parameters {
+    string(description: 'Branch to build', name: 'branch',)
+    string(description: 'IP Address', name: 'IP_ADDRESS')
+    string(description: 'Username', name: 'USERNAME')
+    string(description: 'Password', name: 'PASSWORD', sensitive: true) // Mark password as sensitive
+  }
+
+  stages {
+    stage('Clone') {
+      steps {
+        git credentialsId: 'gitlab', url: 'https://pexgit.growipx.com/supportfirst/supportfirst-api-service.git', branch: "${params.branch}"
+      }
+    }
+    stage('Maven Build') {
+      steps {
+        script {
+          def mvnHome = tool name: 'Maven', type: 'maven'
+          sh "${mvnHome}/bin/mvn clean install"
+        }
+      }
+    }
+    stage('Check dir') { // Optional stage for verification
+      steps{
+        sh 'pwd'
+        sh 'ls -la /var/lib/jenkins/workspace/testiopex/'
+      }
+    }
+    stage('Whoami') { // Optional stage for verification
+      steps {
+        sh 'whoami'
+        sh 'pwd'
+      }
+    }
+    stage('Jar') {
+      steps {
+        sh 'whoami'
+      }
+    }
+    stage('SCP File transfer'){
+      steps{
+        script {
+          def targetDir = '/opt/supportfirst/'  // Update this path if needed
+          sh """
+          scp -T -P 7774 -o StrictHostKeyChecking=no /var/lib/jenkins/workspace/testiopex/target/supportfirst-api-service-0.0.1.war ${params.USERNAME}@${params.IP_ADDRESS}:${targetDir}
+          """
+        }
+      }
+    }
+    stage ('LOG'){ // Consider alternative logging methods
+      steps{
+        // sh 'nohup java -jar ./target/supportfirst-api-service-0.0.1.war &'  // Not recommended for production
+      }
+    }
+    stage ('SSH'){ // Consider alternative deployment methods
+      steps{
+        sh """
+        ssh -p 7774 ${params.USERNAME}@${params.IP_ADDRESS} 'cd ${targetDir} && nohup java -jar supportfirst-api-service-0.0.1.war &'
+        """
+      }
+    }
+    stage ('Run'){ // Optional stage for verification on remote server
+      steps{
+        // sh 'hostname -I'  // Not recommended for production unless debugging
+        // sh 'ls -l'       // Not recommended for production unless debugging
+      }
+    }
+  }
+}
