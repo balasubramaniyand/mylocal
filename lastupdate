@@ -1,0 +1,69 @@
+pipeline {
+    agent any 
+    parameters {
+        string(description: 'Branch to build', name: 'branch',)
+        string(description: 'IP Address', name: 'IP_ADDRESS')
+    }
+    
+    stages {
+        stage('Clone') {
+            steps {
+                git credentialsId: 'gitlab', url: 'https://pexgit.growipx.com/supportfirst/supportfirst-api-service.git', branch: "${params.branch}"
+            }
+        }
+        stage('Maven Build') {
+            steps {
+                script {
+                    def mvnHome = tool name: 'Maven', type: 'maven'
+                    sh "${mvnHome}/bin/mvn clean install"
+                }
+            }
+        }
+        stage ('Check dir') {
+            steps{
+                sh 'pwd'
+                sh 'ls -la /var/lib/jenkins/workspace/testiopex/'
+            }
+        }
+        stage('Whoami') {
+            steps {
+                sh 'whoami'
+                sh 'pwd'
+            }
+        }
+        
+        stage('Jar') {
+            steps {
+                sh 'whoami'
+            }    
+        }
+        
+        stage('SCP File transfer'){
+            steps{
+                sh "scp -T -P 7774 -o StrictHostKeyChecking=no /var/lib/jenkins/workspace/testiopex/target/supportfirst-api-service-0.0.1.war balasubramaniyan.d@${params.IP_ADDRESS}:/home/balasubramaniyan.d"
+            }
+        }
+        
+        stage ('LOG'){
+            steps{
+                sh 'nohup java -jar ./target/supportfirst-api-service-0.0.1.war &'
+            }
+        }
+        
+        stage ('SSH'){
+            steps{
+                sh 'whoami'
+                sh "ssh -p 7774 balasubramaniyan.d@${params.IP_ADDRESS} 'cd && nohup java -jar supportfirst-api-service-0.0.1.war'"
+                sh 'hostname -I'
+            }
+        }
+        
+        stage ('Run'){
+            steps{
+                sh 'hostname -I'
+                sh 'ls -l'
+                sh 'nohup java -jar /home/balasubramaniyan.d/supportfirst-api-service-0.0.1.war '
+            }
+        }
+    }
+}
