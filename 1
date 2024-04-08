@@ -1,0 +1,59 @@
+pipeline {
+  agent any
+  parameters {
+    choice (
+      choices:['main', 'devops'],
+      description: 'Build to build',
+      name : 'branch'
+    )
+    choice (
+      choices:['10.20.245.106', '10.20.245.99'],
+      description: 'Build to build',
+      name : 'IP_ADDRESS'
+    )
+    choice (
+      choices:['balasubramaniyan.d', 'root'],
+      description: 'Build to build',
+      name : 'USERNAME'
+    )
+  }
+  
+  stages {
+    stage('Clone') {
+      steps {
+        git credentialsId: 'gitlab', url: 'https://pexgit.growipx.com/supportfirst/supportfirst-api-service.git', branch: "${params.branch}"
+      }
+    }
+    stage('Maven Build') {
+      steps {
+        script {
+          def mvnHome = tool name: 'Maven', type: 'maven'
+          sh "${mvnHome}/bin/mvn clean install"
+        }
+      }
+    }
+    stage ('Filerename'){
+      steps{
+        sh "ssh -p 7774 ${params.USERNAME}@${params.IP_ADDRESS} 'cd /opt/supportfirst/test && sh -x test.sh'"
+      }
+    }
+    
+    stage('SCP File transfer'){
+      steps{
+        sh "scp -T -P 7774 -o StrictHostKeyChecking=no /var/lib/jenkins/workspace/testiopex/target/supportfirst-api-service-0.0.1.war ${params.USERNAME}@${params.IP_ADDRESS}:/opt/supportfirst/test"
+      }
+    }
+    stage ('SSH CONNCETION'){
+      steps{
+        sh "ssh -p 7774 ${params.USERNAME}@${params.IP_ADDRESS} 'cd /opt/supportfirst/test && nohup java -jar supportfirst-api-service-0.0.1.war'"
+      }
+    }
+    post {
+      success {
+        emailext body: 'The build was succesfully',
+          subject: "Build Successful: ${JOB_NAME} #${BUILD_NUMBER}",
+          to: 'balasubramaniyan.d@iopex.com'
+      }
+    }
+  }
+}
