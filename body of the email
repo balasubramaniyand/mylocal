@@ -16,3 +16,9 @@ pipeline {
 
        URL: ''', recipientProviders: [brokenBuildSuspects()], subject: 'job build failure', to: 'balasubramaniyan.d@iopex.com'
 }
+
+Started by user admin
+org.codehaus.groovy.control.MultipleCompilationErrorsException: startup failed:
+WorkflowScript: 12: Undefined section "emailext" @ line 12, column 5.
+       emailext body: '''Hello Team,
+       ^
