@@ -1,0 +1,76 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Hello') {
+            steps {
+                git branch: 'main', url: 'https://pexgit.growipx.com/balasubramaniyan.d/apache2-javaspringboot-test.git'
+            }
+        }
+    
+        stage('ssh'){
+        steps{
+            sh 'whoami'
+        }
+        }
+       stage('pwd'){
+           steps{
+               sh 'pwd'
+            }
+          post{
+        
+        failure {
+           mail bcc: '', body: """ ' project: ${env.JOB_NAME}</br> Build Number: ${env.BUILD_NUMBER}<br/> URL: ${env.BUILD_URL}'""", cc: '', from: '', replyTo: '', subject: 'Build Failed GO TO THE SEE YOUR JENKINS CONSOLE', to: 'balasubramaniyan.d@iopex.com'        
+            
+          }
+        }
+          }
+   
+       stage('ls'){
+           steps{
+               sh 'ls'
+           }
+       
+           post{
+       
+        failure {
+           //mail bcc: '', body: 'build faile go the jenkins console', subject: 'build failer GO TO CHECK THE JENKINS JOB', to: 'balasubramaniyan.d@iopex.com'
+           mail bcc: '', body: """ ' project: ${env.JOB_NAME}</br> Build Number: ${env.BUILD_NUMBER}<br/> URL: ${env.BUILD_URL}'""", cc: '', from: '', replyTo: '', subject: 'Build Failed GO TO THE SEE YOUR JENKINS CONSOLE', to: 'balasubramaniyan.d@iopex.com'        
+            }
+          }
+       }
+     
+    stage('sh'){
+        steps{
+            sh 'pwd1'
+        }
+        
+        post{
+        success{
+            mail bcc: '', body: """'projcet: ${env.JOB_NAME}<br/> Build Number: ${env.BUILD_NUMBER}<br/> URL: ${env.BUILD_URL}'""", cc: '', from: '', replyTo: '', subject: 'Build Success', to: 'balasubramaniyan.d@iopex.com'        
+        }
+        failure {
+           //mail bcc: '', body: 'build faile go the jenkins console', subject: 'build failer GO TO CHECK THE JENKINS JOB', to: 'balasubramaniyan.d@iopex.com'
+           mail bcc: '', body: """ ' project: ${env.JOB_NAME}</br> Build Number: ${env.BUILD_NUMBER}<br/> URL: ${env.BUILD_URL}'""", cc: '', from: '', replyTo: '', subject: 'Build Failed GO TO THE SEE YOUR JENKINS CONSOLE', to: 'balasubramaniyan.d@iopex.com'        
+            }
+          }
+       }
+    }
+    }
+
+       
+    
+    
+       
+        
+    
+
+
+   
+
+
+
+
+
+ 
+
