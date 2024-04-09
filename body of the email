@@ -4,21 +4,29 @@ pipeline {
     stages {
         stage('Hello') {
             steps {
-                  git credentialsId: 'gitlab', url: 'https://pexgit.growipx.com/supportfirst/supportfirst-api-service.git', branch: "${params.branch}"
+                script {
+                    git credentialsId: 'gitlab', url: 'https://pexgit.growipx.com/supportfirst/supportfirst-api-service.git', branch: "${params.branch}"
+                }
             }
         }
     }
 
-    emailext body: '''Hello Team,
-             The build to the staging environment is successful.
-                Project:
-                Build Number:
-
-       URL: ''', recipientProviders: [brokenBuildSuspects()], subject: 'job build failure', to: 'balasubramaniyan.d@iopex.com'
+    post {
+        success {
+            mail body: '''Hello Team,
+The build to the staging environment is successful.
+Project: ${env.JOB_NAME}
+Build Number: ${env.BUILD_NUMBER}
+URL: ${env.BUILD_URL}
+''', subject: 'Build Success', to: 'balasubramaniyan.d@iopex.com'
+        }
+        failure {
+            mail body: '''Hello Team,
+The build to the environment is unsuccessful.
+Project: ${env.JOB_NAME}
+Build Number: ${env.BUILD_NUMBER}
+URL: ${env.BUILD_URL}
+''', subject: 'Build Failure', to: 'balasubramaniyan.d@iopex.com'
+        }
+    }
 }
-
-Started by user admin
-org.codehaus.groovy.control.MultipleCompilationErrorsException: startup failed:
-WorkflowScript: 12: Undefined section "emailext" @ line 12, column 5.
-       emailext body: '''Hello Team,
-       ^
