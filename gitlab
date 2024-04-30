@@ -1,0 +1,6 @@
+balasubramaniyan.d@cio-etl:~/test$ sudo git clone -bare https://pexgit.growipx.com/supportfirst/supportfirst-api-service.git
+Cloning into 'supportfirst-api-service'...
+Username for 'https://pexgit.growipx.com': balasubramaniyan.d
+Password for 'https://balasubramaniyan.d@pexgit.growipx.com': 
+fatal: Remote branch are not found in upstream origin
+balasubramaniyan.d@cio-etl:~/test$ 
